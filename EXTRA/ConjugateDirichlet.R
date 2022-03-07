@@ -87,6 +87,9 @@ ggarrange(P1, P2)
 ggsave("ConjugatePrior_parameters.eps", width = 11, height = 4.4, dpi = 1000)
 
 
+df <- data.frame("Kn" = seq(1:100),
+                 "Probability" = Kn_marginal(a = .2, b = .1, size = 100))
+data_marginal <- rbind(data_marginal, df)
 
 
 ### Miscellanea

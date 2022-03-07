@@ -1,0 +1,167 @@
+---
+title: "Conjugate Dirichlet prior analysis"
+author: "Alessandro Zito"
+date: "2/25/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(ConjugateDP)
+library(nleqslv)
+library(coda)
+```
+
+
+```{r}
+source("R/DPMM.R")
+```
+
+
+```{r}
+### Let's start with a simple bivariate plot
+sample_data <- function(size, sigma, K){
+  ## Step 1 - sample cluster assignment
+  #cl <- sort(sample(1:4, size = size, replace = T))
+  cl <-sort(sample(1:K, size = size, replace = T))
+  out <- NULL
+  for(j in unique(cl)){
+    nj <- sum(cl == j)
+    mu <- c(2*(j-1), 2*(-1)^(j-1))
+    Sigma <- diag(rep(sigma, 2))
+    out <- rbind(out, rmvnorm(n = nj, mean = mu, sigma = Sigma))
+  }
+  df <- data.frame(cbind(out , "cluster" = as.factor(cl)))
+  df$cluster <- as.factor(df$cluster) 
+  df
+}
+
+EKn_alpha <- function(n, alpha){
+  alpha*(digamma(alpha + n) - digamma(alpha))
+}
+
+fn <- function(x, n, K){
+  EKn_alpha(n = n,alpha = x) - K
+}
+moments_A <- function(a, b, size){
+  Cab <- NormConst(a, b, size)
+  mu <- exp(NormConst(a+1, b, size) - Cab)
+  mu2 <- exp(NormConst(a+2, b, size) - Cab)
+  c("mean"= mu, "var" = mu2 - mu^2)
+}
+
+```
+
+
+```{r}
+## Sample data
+set.seed(42)
+n = 1000
+data <- sample_data(size = n, sigma = 1, K = 2)
+ggplot(data = data) + geom_point(aes(x=V1, y=V2, color = cluster)) + theme(aspect.ratio = 1)
+```
+```{r}
+# Try three different priors
+y <- scale(data[,-3])
+
+## Prior of the base measure
+p <- ncol(y)
+n <- nrow(y)
+nu0 <- kappa0 <- p
+S0 <- diag(p)
+mu0 <- rep(0,p)
+
+## Prior on the alpha parameter
+a <- 10
+b <- 1
+R <- 1000
+burnin <- 500
+prior_moments <- moments_A(a=a, b=b, size = n)
+a_gamma <-  prior_moments[1]^2/prior_moments[2]
+b_gamma <-  prior_moments[1]/prior_moments[2]
+
+## My conjugate prior
+set.seed(42)
+outDP <- DPMM(y = y, R = R, burnin = burnin, a = a, b=b, nu0 = nu0, mu0 = mu0, 
+              S0 = S0, kappa0 = kappa0)
+
+
+set.seed(42)
+## Escobar and West
+outEW <- DPMM(y = y, R = R, burnin = burnin, a = a_gamma, b=b_gamma, nu0 = nu0, mu0 = mu0, 
+              S0 = S0, kappa0 = kappa0, Gamma_prior = T)
+
+## Fixed alpha
+set.seed(42)
+outFixed_Mean <- DPMM(y = y, R = R, burnin = burnin, alpha = prior_moments[1], alpha_fixed = T,
+                 b=b_gamma, nu0 = nu0, mu0 = mu0, S0 = S0, kappa0 = kappa0)
+
+set.seed(42)
+alpha_K <- nleqslv(1, fn, n = n, K = a/b)$x
+outFixed_K <- DPMM(y = y, R = R, burnin = burnin, alpha = alpha_K, alpha_fixed = T,
+                 b=b_gamma, nu0 = nu0, mu0 = mu0, S0 = S0, kappa0 = kappa0)
+```
+
+
+```{r}
+## Let's make a plot now
+
+df_DP <- data.frame(table(outDP$Kn))
+df_DP$method <- "DiaconisYlvisaker"
+
+df_EW <- data.frame(table(outEW$Kn))
+df_EW$method <- "EscobarWest"
+
+df_fixedM <- data.frame(table(outFixed_Mean$Kn))
+df_fixedM$method <- "Fixed alpha"
+
+df_fixedK <- data.frame(table(outFixed_K$Kn))
+df_fixedK$method <- "Fixed K"
+
+P3 <- ggplot(data = rbind(df_DP, df_EW, df_fixedM, df_fixedK)) +
+  geom_bar(aes(x = Var1, y = Freq, fill = method),colour = "black", stat="identity", position=position_dodge())+
+  theme_minimal()+
+  theme(aspect.ratio = 1) +
+  xlab("Kn") +
+  scale_fill_brewer(direction = 1, palette="Paired")
+
+P1
+P2
+P3
+```
+
+
+```{r}
+moments_A(a = 10, b = 1, size = 100)
+moments_A(a = .5, b = .25, size = 1e2)
+```
+
+
+
+
+
+```{r}
+set.seed(42)
+outDP <- DPMM(y = y, R = R, burnin = burnin, a = 2, b=1, nu0 = nu0, mu0 = mu0, 
+              S0 = S0, kappa0 = kappa0)
+
+plot(table(outDP$Kn))
+```
+
+
+```{r}
+set.seed(42)
+y <- cbind(rnorm(5000), rnorm(5000))
+outDP <- DPMM(y = y, R = 100, burnin = 50, a = 1, b=.1, nu0 = nu0, mu0 = mu0, 
+              S0 = S0, kappa0 = kappa0)
+plot(table(outDP$Kn))
+ggplot(data = data.frame(y, 'cluster' = as.factor(outDP$clusters))) + geom_point(aes(x=X1, y=X2, color = cluster)) + theme(aspect.ratio = 1)
+
+plot(table(outDP$Kn))
+```
+
+
+
+
+
+
