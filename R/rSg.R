@@ -41,15 +41,15 @@ rSg <- function(nsamples = 1, a, b, m, method = NULL) {
   nsamples <- floor(nsamples)
 
   # Sample with the default method
-  if(is.null(method)) {
-    if(a - b >= 1) {
+  if (is.null(method)) {
+    if (a - b >= 1) {
       bounds <- getBounds_MuMv(a, b, m)
       samples <- c(rSg_ratio_uniforms(nsamples, a, b, m, Mu = bounds$Mu, Mv = bounds$Mv))
     } else {
       samples <- c(rSg_beta_prime(nsamples, a, b, m))
     }
   } else {
-    if(method == "ratio_uniform") {
+    if (method == "ratio_uniform") {
       bounds <- getBounds_MuMv(a, b, m)
       samples <- c(rSg_ratio_uniforms(nsamples, a, b, m, Mu = bounds$Mu, Mv = bounds$Mv))
     } else if (method == "beta_prime") {
@@ -66,12 +66,12 @@ rSg <- function(nsamples = 1, a, b, m, method = NULL) {
 getBounds_MuMv <- function(a, b, m) {
 
   # Calculate the maximum value of the log density
-  Mu <- - stats::nlminb(
+  Mu <- -stats::nlminb(
     start = 1,
     lower = 1e-12,
-    function(x) - log_pdf_Sg(x, a, b, m),
+    function(x) -log_pdf_Sg(x, a, b, m),
     gradient = function(x) {
-      - (a - 1) / x + b * (digamma(x + m) - digamma(x))
+      -(a - 1) / x + b * (digamma(x + m) - digamma(x))
     },
     control = list(abs.tol = 1e-12)
   )$objective
@@ -81,7 +81,7 @@ getBounds_MuMv <- function(a, b, m) {
     start = 1,
     lower = 1e-12,
     control = list(abs.tol = 1e-13),
-    function(x) - log_pdf_Sg(x, a, b, m) - 2 * log(x),
+    function(x) -log_pdf_Sg(x, a, b, m) - 2 * log(x),
     gradient = function(x) {
       -(a - 1) / x + b * (digamma(x + m) - digamma(x)) - 2 / x
     },
@@ -89,12 +89,3 @@ getBounds_MuMv <- function(a, b, m) {
 
   return(list(Mu = Mu, Mv = Mv))
 }
-
-
-
-
-
-
-
-
-

@@ -6,8 +6,8 @@ Version: 0.1.0
 Author: Alessandro Zito
 Maintainer: The package maintainer <alessandro.zito@duke.edu>
 Description: This package contains the random samples generator for the Stirling-gamma 
-  distribution described in Zito, Rigon and Dunson (2023+). "Conjugate prior for the
-  Dirichlet process precision via the Stirling-gamma distribution". 
+  distribution described in Zito, Rigon and Dunson (2023+). "Bayesian nonparametric modeling of random
+  partitions via Stirling-gama priors". 
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true

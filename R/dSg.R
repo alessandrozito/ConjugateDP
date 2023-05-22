@@ -1,15 +1,20 @@
 #' Density function of the Conjugate DP distribution
 #'
-#' @param x Vector of values to evaluate
+#' @param x Vector of values to evaluate.
 #' @param a Location parameter of the Stirling-gamma. It must hold that \code{a > 0} and \code{1 < a/b < m}.
 #' @param b Precision parameter of the Stirling-gamma. It must hold that \code{b > 0} and \code{1 < a/b < m}.
 #' @param m Reference sample size parameter. Must be an integer, so that \code{1 < a/b < m}.
 #' @param log return the density in log scale
 #' @importFrom Rcpp sourceCpp
 #' @return  A vector of size \code{length(x)}
+#' @details The function calculates the normalizing constant of the Stirling-gamma distribution using bridge sampling.
+#'          This might require a few extra seconds.
 #' @export
 #' @useDynLib ConjugateDP
 dSg <- function(x, a, b, m, log = FALSE) {
+  if(!all(x > 0)){
+    stop("Negative values for x not accepted.")
+  }
   normconst <- ComputeStirgammaNormConst(a, b, m)
   # Return the values
   out <- sapply(x, function(y) log_pdf_Sg(x = y, a = a, b = b, m = m) - normconst)
@@ -45,11 +50,10 @@ ComputeStirgammaNormConst <- function(a, b, m) {
   mat_samples <- as.matrix(samples)
   colnames(mat_samples) <- "x"
   normconst <- bridgesampling::bridge_sampler(mat_samples,
-                                              log_posterior = function(pars, data) log_pdf_Sg(x = pars, a = data$a, b = data$b, m = data$m),
-                                              data = list("a" = a, "b" = b, "m" = m),
-                                              lb = c("x" = 0),
-                                              ub = c("x" = Inf), silent = T
+    log_posterior = function(pars, data) log_pdf_Sg(x = pars, a = data$a, b = data$b, m = data$m),
+    data = list("a" = a, "b" = b, "m" = m),
+    lb = c("x" = 0),
+    ub = c("x" = Inf), silent = T
   )$logml
   return(normconst)
 }
-

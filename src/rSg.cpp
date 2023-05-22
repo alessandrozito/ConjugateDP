@@ -79,8 +79,6 @@ arma::vec rSg_beta_prime(int nsamples, double a, double b, double m){
       // Sample the uniform
       u = arma::randu();
       // Calculate the acceptance ratio
-      //acc_ratio = - b * (lgamma(y + m) - lgamma(y + 1)) +
-      //  ((m * b - b - 1)/(m-1)) * lgamma(m) + (m * b - 1) * log(1 + y / r);
       acc_ratio = -b * (lgamma(y + m) - lgamma(y + 1)) + b * (m - 1) * log(y + r);
       if(log(u) <= acc_ratio){
         samples(i) = y;
