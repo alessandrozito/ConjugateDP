@@ -9,7 +9,11 @@ devtools::install_github("alessandrozito/ConjugateDP")
 
 library(ConjugateDP)
 ```
-To run the function, use the following commands
+The package contains two functions: 
+  1) `rSg`, which generates random numbers from the Stirling-gamma distribution
+  2) `dSg`, which evaluates the probability density function
+
+The following code provides an example.
 
 ```r
 set.seed(42)
