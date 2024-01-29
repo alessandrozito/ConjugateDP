@@ -34,6 +34,25 @@ plot(x, y, type = "l", main = "dSg", xlab = "alpha", ylab = "Density")
 hist(samples, breaks = 50, freq = FALSE, main = "rSg", xlab = "alpha", ylab = "Density")
 ```
 
+A sampler for the posterior distribution of the precision parameter of a Dirichlet process
+under a Stirling-gamma prior is available usign the following code.
+```r
+set.seed(42)
+par(mfrow = c(1,1))
+# To sample from the distribution
+nsamples <- 50000
+# Expecting 3 clusters in 30 observations
+a <- 2
+b <- 2/3
+m <- 30
+prior_samples <- rSg(nsamples, a, b, m)
+plot(density(prior_samples), col = "blue", main = "Prior (blue) and posterior (red) precision")
+# Observing 10 clusters in 100 observations
+k <- 8
+n <- 100
+posterior_samples <- rSg_posterior(nsamples, a, b, m, k, n)
+lines(density(posterior_samples), col = "red")
+```
 
 
 

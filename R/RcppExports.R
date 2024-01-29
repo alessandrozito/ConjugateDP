@@ -17,3 +17,11 @@ rSg_beta_prime <- function(nsamples, a, b, m) {
     .Call('_ConjugateDP_rSg_beta_prime', PACKAGE = 'ConjugateDP', nsamples, a, b, m)
 }
 
+log_pdf_Sg_posterior <- function(x, a, b, m, k, n) {
+    .Call('_ConjugateDP_log_pdf_Sg_posterior', PACKAGE = 'ConjugateDP', x, a, b, m, k, n)
+}
+
+rSg_posterior_ratio_uniforms <- function(nsamples, a, b, m, k, n, Mu, Mv) {
+    .Call('_ConjugateDP_rSg_posterior_ratio_uniforms', PACKAGE = 'ConjugateDP', nsamples, a, b, m, k, n, Mu, Mv)
+}
+

@@ -72,3 +72,43 @@ rNCStirgamma <- function(nsamples = 1, a, b = 1, m, n, k) {
 
   return(samples)
 }
+
+ComputeStirgammaNormConst_nconj <- function(a, b, m, n,k) {
+  if ((!is.integer(m)) & m < 2) {
+    stop("Parameter 'm' must be an integer >= 2")
+  }
+
+  ## Check validity of a and b
+  if (a < 0) {
+    stop("Parameter 'a' must be positive")
+  }
+
+  if (b < 0) {
+    stop("Parameter 'b' must be positive")
+  }
+
+  if (a / b <= 1 | a / b >= m) {
+    stop("Values for 'a' and 'b' must satisfy '1 < a/b < m'")
+  }
+
+  ## Draw posterior samples
+  samples <- rNCStirgamma(nsamples = 1e5, a = a, b = b, m = m, n = n, k = k)
+
+  ## Evaluate the normalizing constant via Bridgesampling
+  mat_samples <- as.matrix(samples)
+  colnames(mat_samples) <- "x"
+  normconst <- bridgesampling::bridge_sampler(mat_samples,
+                                              log_posterior = function(pars, data) log_pdf_NCStirgamma(x = pars, a = data$a,
+                                                                                                       b = data$b, m = data$m,
+                                                                                                       n = data$n, k = data$k),
+                                              data = list("a" = a, "b" = b, "m" = m, "n" =n, "k" = k),
+                                              lb = c("x" = 0),
+                                              ub = c("x" = Inf), silent = T
+  )$logml
+  return(normconst)
+}
+
+
+
+
+

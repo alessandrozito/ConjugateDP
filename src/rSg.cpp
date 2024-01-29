@@ -94,9 +94,3 @@ arma::vec rSg_beta_prime(int nsamples, double a, double b, double m){
 
 
 
-
-
-
-
-
-
